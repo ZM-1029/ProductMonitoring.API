@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProductMonitoring.API.Models;
+using ProductMonitoring.API.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,8 @@ builder.Services.AddDbContext<ProductMonitoringDbContext>(options =>
     options.LogTo(Console.WriteLine, LogLevel.Error);
 
 });
+
+builder.Services.AddScoped<IMasterRepo,MasterRepo>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
