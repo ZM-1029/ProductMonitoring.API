@@ -1,6 +1,6 @@
 @ProductMonitoring.API_HostAddress = http://localhost:5163
 
-GET {{ProductMonitoring.API_HostAddress}}/api/master/GetBitAddressList?key=m
+GET {{ProductMonitoring.API_HostAddress}}/api/Master/GetBitAddressWithDetails?key=m
 Accept: application/json
 
 ###

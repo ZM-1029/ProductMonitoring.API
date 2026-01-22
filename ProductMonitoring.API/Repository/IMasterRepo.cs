@@ -1,9 +1,11 @@
-﻿using ProductMonitoring.API.Models;
+﻿using ProductMonitoring.API.DTO;
+using ProductMonitoring.API.Models;
 
 namespace ProductMonitoring.API.Repository
 {
     public interface IMasterRepo
     {
+        public  Task<bool> PostErrorManual(RequestBody data);
         public Task<List<BitAddressMaster>> GetAllBitAddressByKeyAsync(string key);
         public Task<BitAddressMaster?> GetBitAddressByKeyAsync(string key);
         public Task<List<BitAddressCause>?> GetBitAddressCauseAsync(string key);

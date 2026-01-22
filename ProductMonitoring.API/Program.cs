@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using ProductMonitoring.API.Models;
 using ProductMonitoring.API.Repository;
 
@@ -34,6 +35,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "ErrorManual")),
+    RequestPath = "/errorManual"
+});
 
 app.MapControllers();
 

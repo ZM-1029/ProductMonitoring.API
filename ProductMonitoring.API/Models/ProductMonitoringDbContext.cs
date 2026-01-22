@@ -42,9 +42,9 @@ public partial class ProductMonitoringDbContext : DbContext
 
         modelBuilder.Entity<BitAddressErrorManual>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("BitAddressErrorManual");
+            entity.HasKey(e => e.Id).HasName("BitAddressErrorManual_pkey");
+
+            entity .ToTable("BitAddressErrorManual");
 
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd()

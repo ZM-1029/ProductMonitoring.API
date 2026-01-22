@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ProductMonitoring.API.DTO;
 using ProductMonitoring.API.Models;
 
 namespace ProductMonitoring.API.Repository
@@ -6,9 +7,63 @@ namespace ProductMonitoring.API.Repository
     public class MasterRepo : IMasterRepo
     {
         private readonly ProductMonitoringDbContext _dbContext;
-        public MasterRepo(ProductMonitoringDbContext dbContext)
+        private readonly IWebHostEnvironment _environment;
+
+        public MasterRepo(ProductMonitoringDbContext dbContext, IWebHostEnvironment environment)
         {
             _dbContext = dbContext;
+            _environment = environment;
+        }
+        private async Task<string?> UploadErrorManual(IFormFile? manual,string key)
+        {
+            if (manual == null || manual.Length == 0)
+                return null;
+            var CurrDir = Directory.GetCurrentDirectory();
+            var uploadsFolder = Path.Combine(CurrDir, "ErrorManual");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = $"{key}_{Path.GetFileName(manual.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await manual.CopyToAsync(fileStream);
+            }
+
+            return $"/errorManual/{uniqueFileName}";
+        }
+
+        public async Task<bool> PostErrorManual(RequestBody data)
+        { 
+            var bitAddress = await _dbContext.BitAddressMasters
+                           .FirstOrDefaultAsync(x =>x.BitCategoryId==data.CategoryId && x.Code.Trim().ToUpper().Contains(data.Key.Trim().ToUpper()));
+
+            if (bitAddress == null) return false;
+            // file operation
+            var url = data.File!=null?await UploadErrorManual(data.File, data.Key):null;
+
+            var existingManual = await _dbContext.BitAddressErrorManuals
+                                        .FirstOrDefaultAsync(x => x.BitAddressId == bitAddress.Id);
+            if (existingManual == null)
+            {
+                BitAddressErrorManual newErrorManual = new BitAddressErrorManual
+                {
+                    BitAddressId = bitAddress.Id,
+                    ManualUrl = url
+                };
+
+               await  _dbContext.BitAddressErrorManuals.AddAsync(newErrorManual);
+            }
+            else
+            {
+                existingManual.ManualUrl = url;
+                //_dbContext.Update(existingManual);
+
+            }
+
+            _dbContext.SaveChanges();
+            return true;
         }
         public async Task<List<BitAddressMaster>> GetAllBitAddressByKeyAsync(string key)
         {
