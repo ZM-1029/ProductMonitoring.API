@@ -11,4 +11,6 @@ public partial class SolutionHistory
 
     public bool IsExistingSolution { get; set; }
     public string? Description { get; set; }
+
+    public DateTime? CreatedOn { get; set; }
 }

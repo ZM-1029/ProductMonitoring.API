@@ -145,6 +145,7 @@ namespace ProductMonitoring.API.Repository
                 Description = remedy,
                 IsExistingSolution = IsExistingSolution,
                 BitAddressId = existingBitAddress.Id,
+                CreatedOn = DateTime.UtcNow,
 
             };
 
@@ -153,17 +154,28 @@ namespace ProductMonitoring.API.Repository
             return true;
         }
 
-        public async Task<List<SolutionHistory>?> GetTicketSolution(int? count)
+        public async Task<List<dynamic>> GetTicketSolution(int? count)
         {
             var solutions = await _dbContext.SolutionHistories.ToListAsync();
-              // .Where(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
+            // .Where(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
+
+            var bitAddressList = await _dbContext.BitAddressMasters.ToListAsync();
+             //.Where(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
 
             if (count != null && count>0) 
             {
                 solutions = solutions.Take(count??0).ToList();
             }
 
-           return solutions;
+            var response= solutions.Select(  x=> (dynamic)new 
+            {
+                BitAddress= bitAddressList.FirstOrDefault(ba=>ba.Id==x.BitAddressId)?.Code,
+                x.Description,
+                x.IsExistingSolution,
+                x.CreatedOn
+            }).ToList();
+
+           return response;
         }
     }
 }

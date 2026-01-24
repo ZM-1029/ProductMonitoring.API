@@ -105,9 +105,9 @@ namespace ProductMonitoring.API.Controllers
         [HttpGet]
         public async Task<IActionResult> RecentlyClosedTickets(int? count)
         { 
-           var data=_masterRepo.GetTicketSolution(count);
+           var data=await _masterRepo.GetTicketSolution(count);
 
-            return Ok(new {Status=true, Message="Data retrieved successfully"});
+            return Ok(new {Status=true, Data= data, Message="Data retrieved successfully"});
         }
     }
 }
