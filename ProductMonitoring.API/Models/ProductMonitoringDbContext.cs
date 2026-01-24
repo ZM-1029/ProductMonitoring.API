@@ -24,12 +24,25 @@ public partial class ProductMonitoringDbContext : DbContext
     public virtual DbSet<BitAddressRemedy> BitAddressRemedies { get; set; }
 
     public virtual DbSet<BitCategory> BitCategories { get; set; }
+    public virtual DbSet<SolutionHistory> SolutionHistories { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+
+  /*  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseNpgsql("Host=zoumaapp.com;Port=5432;Database=ProductMonitoringDB;Username=postgres;Password=zoumapg!@#admin;");
-
+*/
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<SolutionHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("SolutionHistoryTable_pkey");
+
+            entity.ToTable("SolutionHistory");
+
+            entity.Property(e => e.Id).HasIdentityOptions(null, null, null, 9999999999999L, null, null);
+            entity.Property(e => e.Description).HasColumnType("character varying");
+            entity.Property(e => e.IsExistingSolution).HasDefaultValue(true);
+        });
+
         modelBuilder.Entity<BitAddressCause>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("BitAddressCause_pkey");

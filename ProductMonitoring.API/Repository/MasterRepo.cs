@@ -113,5 +113,57 @@ namespace ProductMonitoring.API.Repository
 
             return await _dbContext.BitAddressRemedies.Where(x => x.BitAddressId == bitAddress.Id).ToListAsync();
         }
+
+        public async Task<bool> AddNewRemedy(string remedy, string key)
+        {
+            var existingBitAddress =  await _dbContext.BitAddressMasters
+                .FirstOrDefaultAsync(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
+
+            if (existingBitAddress == null) { return false; }
+
+            var data = new BitAddressRemedy { 
+            Remedy = remedy,
+            IsAdditionRemedy=true,
+            BitAddressId=existingBitAddress.Id,
+
+            };
+
+            await _dbContext.BitAddressRemedies.AddAsync(data);
+            _dbContext.SaveChanges();
+            return true;
+        }
+
+        public async Task<bool> AddTicketSolution(string key, string? remedy, bool IsExistingSolution)
+        {
+            var existingBitAddress = await _dbContext.BitAddressMasters
+               .FirstOrDefaultAsync(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
+
+            if (existingBitAddress == null) { return false; }
+
+            var data = new SolutionHistory
+            {
+                Description = remedy,
+                IsExistingSolution = IsExistingSolution,
+                BitAddressId = existingBitAddress.Id,
+
+            };
+
+            await _dbContext.SolutionHistories.AddAsync(data);
+            _dbContext.SaveChanges();
+            return true;
+        }
+
+        public async Task<List<SolutionHistory>?> GetTicketSolution(int? count)
+        {
+            var solutions = await _dbContext.SolutionHistories.ToListAsync();
+              // .Where(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
+
+            if (count != null && count>0) 
+            {
+                solutions = solutions.Take(count??0).ToList();
+            }
+
+           return solutions;
+        }
     }
 }

@@ -78,7 +78,7 @@ namespace ProductMonitoring.API.Controllers
                 ErrorManuals = bitAddressErrorManualList
             };
             return Ok(new { Status = true, Data = response, Message = "Data retrieved successfully!" });
-        }
+        } // Main API
 
         [HttpPost]
         public async Task<IActionResult> UploadErrorManual([FromForm] RequestBody data)
@@ -88,6 +88,26 @@ namespace ProductMonitoring.API.Controllers
             return Ok(new { Status = true, Data = data, Message = "Data received successfully!" });
             else
             return Ok(new { Status = false, Message = "Data upload failed!" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CloseTicket(TicketRequest data)
+        {
+            if (!data.IsExistingSolution && data.Remedy!=null)
+            {
+                var isAdded = await _masterRepo.AddNewRemedy(data.Remedy,data.key);         
+            }
+
+            await _masterRepo.AddTicketSolution(data.key, data.Remedy, data.IsExistingSolution);
+            return Ok(new { Status = true, Message = "Ticket closed successfully" } );
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RecentlyClosedTickets(int? count)
+        { 
+           var data=_masterRepo.GetTicketSolution(count);
+
+            return Ok(new {Status=true, Message="Data retrieved successfully"});
         }
     }
 }
