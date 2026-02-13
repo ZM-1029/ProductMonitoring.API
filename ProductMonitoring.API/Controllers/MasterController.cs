@@ -104,14 +104,14 @@ namespace ProductMonitoring.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CloseTicket(TicketRequest data)
+        public async Task<IActionResult> CloseTicket([FromForm] TicketRequest data)
         {
             if (!data.IsExistingSolution && data.Remedy!=null)
             {
                 var isAdded = await _masterRepo.AddNewRemedy(data.Remedy,data.key);         
             }
 
-            await _masterRepo.UpdateErrorLog(data.key, data.Remedy, data.IsExistingSolution);
+            await _masterRepo.UpdateErrorLog(data.key, data.Remedy, data.IsExistingSolution,data.File);
             return Ok(new { Status = true, Message = "Ticket closed successfully" } );
         }
 
@@ -122,7 +122,7 @@ namespace ProductMonitoring.API.Controllers
 
             return Ok(new {Status=true, Data= data, Message="Data retrieved successfully"});
         }
-
+                
         [HttpGet]
         // CHat not API
         [HttpGet]
@@ -177,9 +177,9 @@ namespace ProductMonitoring.API.Controllers
                         Status = false,
                         Data = new[]
                         {
-                    $"I found error code '{keyFromUser}', but category '{categoryFromUser}' did not match.",
-                    $"Please reply in this format: {keyFromUser} - {string.Join(" / ", categories.Select(c => c.Name))}"
-                }
+                            $"I found error code '{keyFromUser}', but category '{categoryFromUser}' did not match.",
+                            $"Please reply in this format: {keyFromUser} - {string.Join(" / ", categories.Select(c => c.Name))}"
+                        }
                     });
                 }
 
@@ -360,7 +360,9 @@ namespace ProductMonitoring.API.Controllers
                         }
                     }
 
-                    *//* var result = await _masterRepo.GetBitAddressRemedyWithManualAsync(key);
+                    */
+        
+        /* var result = await _masterRepo.GetBitAddressRemedyWithManualAsync(key);
 
                      if (result == null || !result.Any())
                      {
@@ -379,7 +381,9 @@ namespace ProductMonitoring.API.Controllers
                          DetectedCode = key,
                          Message = "Here’s the solution for your error:",
                          Data = result.Select(x => x.Remedy)
-                     });*//*
+                     });*/
+        
+        /*
                 }
         */
         private string? GetBasicChatResponse(string input)
@@ -407,7 +411,6 @@ namespace ProductMonitoring.API.Controllers
 
             return null;
         }
-
 
         /* public async Task<IActionResult> SolveError(string input)
          {

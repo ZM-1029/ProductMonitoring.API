@@ -10,7 +10,7 @@ namespace ProductMonitoring.API.Repository
         public  Task<List<BitAddressRemedy>?> GetBitAddressRemedyWithManualAsync(string key, int categoryId);
 
         public Task<bool> AddNewRemedy(string remedy, string key);
-        public  Task<bool> UpdateErrorLog(string key, string? remedy, bool IsExistingSolution);
+        public  Task<bool> UpdateErrorLog(string key, string? remedy, bool IsExistingSolution, IFormFile? file);
         public  Task<List<dynamic>> ErrorLogData(int? count, DateTime? from, DateTime? to, string? code);
         public Task<bool> PostErrorManual(RequestBody data);
         public Task<List<BitAddressMaster>> GetAllBitAddressByKeyAsync(string key);

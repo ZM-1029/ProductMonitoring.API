@@ -18,4 +18,6 @@ public partial class SolutionHistory
     public DateTime? UpdatedOn { get; set; }
 
     public bool IsOpen { get; set; } = true;
+
+    public string? File     { get; set; }
 }

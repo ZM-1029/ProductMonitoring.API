@@ -202,6 +202,8 @@ namespace ProductMonitoring.API.Repository
             var existingBitAddress =  await _dbContext.BitAddressMasters
                 .FirstOrDefaultAsync(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
 
+
+
             if (existingBitAddress == null) { return false; }
 
             var data = new BitAddressRemedy { 
@@ -216,20 +218,33 @@ namespace ProductMonitoring.API.Repository
             return true;
         }
 
-        public async Task<bool> UpdateErrorLog(string key, string? remedy, bool IsExistingSolution)
+        public async Task<bool> UpdateErrorLog(string key, string? remedy, bool IsExistingSolution, IFormFile? file)
         {
             var existingBitAddress = await _dbContext.BitAddressMasters
                .FirstOrDefaultAsync(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
 
             if (existingBitAddress == null) { return false; }
 
-            var existingErrorLog = _dbContext.SolutionHistories.FirstOrDefault(x => x.BitAddress.Trim().ToUpper().Contains(key.Trim().ToUpper()));
+            var existingErrorLog = _dbContext.SolutionHistories.FirstOrDefault(x =>x.IsOpen==true && x.BitAddress.Trim().ToUpper().Contains(key.Trim().ToUpper()));
             if (existingErrorLog != null)
             {
                 existingErrorLog.IsExistingSolution = IsExistingSolution;
                 existingErrorLog.IsOpen = false;
                 existingErrorLog.UpdatedOn = DateTime.UtcNow;
-
+                if (file != null)
+                {
+                    var fileURL=await UploadErrorManual(file, key);
+                    existingErrorLog.File=fileURL;
+        
+                    BitAddressErrorManual newErrorManual = new BitAddressErrorManual
+                    {
+                        BitAddressId = existingBitAddress.Id,
+                        ManualUrl = fileURL,
+                        IsAdditionalManual = true
+                    };
+                    await _dbContext.BitAddressErrorManuals.AddAsync(newErrorManual);
+                                      
+                }
                 _dbContext.Update(existingErrorLog);
                 _dbContext.SaveChanges();
                 return true;
@@ -274,7 +289,8 @@ namespace ProductMonitoring.API.Repository
                // x.IsExistingSolution,
                 x.CreatedOn,
                 x.IsOpen,
-                x.UpdatedOn
+                x.UpdatedOn,
+                x.File
             }).OrderByDescending(y=>y.CreatedOn).ToList();
 
            return response;
