@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using OfficeOpenXml;
 using ProductMonitoring.API.Models;
 using ProductMonitoring.API.Repository;
 using ProductMonitoring.API.SignalRsetup;
 
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+ExcelPackage.License.SetNonCommercialPersonal("Narendra"); 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,8 +79,8 @@ app.UseAuthorization();
     FileProvider = new PhysicalFileProvider(
         Path.Combine(builder.Environment.ContentRootPath, "ErrorManual")),
     RequestPath = "/errorManual"
-});
-*/
+});*/
+
 app.MapControllers();
 
 app.Run();

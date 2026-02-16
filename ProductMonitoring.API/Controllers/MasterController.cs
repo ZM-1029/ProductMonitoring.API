@@ -450,6 +450,56 @@ namespace ProductMonitoring.API.Controllers
              await _masterRepo.AddSolutionHistoryAsync(modeldata);
             return Ok(new {Status=true, Data=data, Message="Data added successfully"});
         }
+
+        /* [HttpGet]
+         public IActionResult DownloadPartMasterTemplate()
+         {
+             var templatePath = _masterRepo.GeneratePartMasterTemplate();
+             if (string.IsNullOrEmpty(templatePath) || !System.IO.File.Exists(templatePath))
+                 return Ok(new { Status = false, Message = "Failed to generate template" });
+
+             var fileBytes = System.IO.File.ReadAllBytes(templatePath);
+             var fileName = "PartMaster_Template.xlsx";
+
+             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+         }*/
+        public record BulkUploadPartMasterDto(IFormFile File);
+
+        [HttpPost]
+        public async Task<IActionResult> BulkUploadPartMaster([FromForm]BulkUploadPartMasterDto file)
+        {
+            if (file.File == null || file.File.Length == 0)
+                return Ok(new { Status = false, Message = "No file uploaded" });
+
+            if (!file.File.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+                return Ok(new { Status = false, Message = "Only .xlsx files are supported" });
+
+            try
+            {
+                var result = await _masterRepo.BulkUploadPartMaster(file.File);
+
+                if (result.FailureCount > 0)
+                {
+                    return Ok(new
+                    {
+                        Status = result.SuccessCount > 0,
+                        Data = result,
+                        Message = $"Upload completed with {result.SuccessCount} successful and {result.FailureCount} failed records"
+                    });
+                }
+
+                return Ok(new
+                {
+                    Status = true,
+                    Data = result,
+                    Message = $"Successfully uploaded {result.SuccessCount} parts"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { Status = false, Message = $"Upload failed: {ex.Message}" });
+            }
+        }
     }
 }
     
