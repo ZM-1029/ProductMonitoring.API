@@ -16,6 +16,7 @@ public partial class ProductMonitoringDbContext : DbContext
     }
 
     public virtual DbSet<BitAddressCause> BitAddressCauses { get; set; }
+    public virtual DbSet<PartMaster> PartMaster { get; set; }
 
     public virtual DbSet<BitAddressErrorManual> BitAddressErrorManuals { get; set; }
 
@@ -32,6 +33,17 @@ public partial class ProductMonitoringDbContext : DbContext
 */
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<PartMaster>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PartMaster_pkey");
+
+            entity.ToTable("PartMaster");
+
+            entity.Property(e => e.Id).HasIdentityOptions(null, null, null, 9999999999999L, null, null);
+            entity.Property(e => e.Description).HasColumnType("character varying");
+           // entity.Property(e => e.IsExistingSolution).HasDefaultValue(true);
+        });
+
         modelBuilder.Entity<SolutionHistory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("SolutionHistoryTable_pkey");
