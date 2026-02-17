@@ -143,6 +143,54 @@ namespace ProductMonitoring.API.Controllers
                 });
             }
 
+            // ============================================================
+            // 🔹 NEW: PartNumber handling (ADDED – existing logic unchanged)
+            // ============================================================
+            if (input.IndexOf("part", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                // Remove words "part" and "number"
+                var cleanedInput = Regex.Replace(input,
+                    @"\bpartnumber\b|\bpart\b|\bnumber\b",
+                    "",
+                    RegexOptions.IgnoreCase).Trim();
+
+                // Extract possible part number token
+                var partMatch = Regex.Match(cleanedInput,
+                    @"[\[\]A-Za-z0-9\-]+");
+
+                if (partMatch.Success)
+                {
+                    string partNumber = partMatch.Value.Trim();
+
+                    var partDetails = await _masterRepo.GetPartMasterByPartNumberAsync(partNumber);
+
+                    if (partDetails == null)
+                    {
+                        return Ok(new
+                        {
+                            Status = false,
+                            Data = new[] { $"I couldn’t find any records for Part Number '{partNumber}'." }
+                        });
+                    }
+
+                    return Ok(new
+                    {
+                        Status = true,
+                        IsChat = false,
+                        Message = $"Here are the details for Part Number '{partNumber}':",
+                        Data = new[]
+                            {
+                            $"Part Number: {partDetails.Number}",
+                            $"Part Location: {partDetails.Location}",
+                            $"Section: {partDetails.Section}",
+                            $"Quantity: {partDetails.Quantity??0}"
+                        }
+                    });
+                }
+            }
+
+            // ============================================================
+
             // 🔹 STEP 2A: Check if user provided BOTH error code AND category
             var keyCategoryMatch = Regex.Match(input,
                 @"(?<key>\[[A-Za-z0-9]+\]M?\d+|M\d{3,6}|\b\d{3}\b)\s*[-,:]?\s*(?<category>[A-Za-z ]{3,})",

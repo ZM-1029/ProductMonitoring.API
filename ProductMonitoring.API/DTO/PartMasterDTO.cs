@@ -1,13 +1,11 @@
-﻿namespace ProductMonitoring.API.Models
+﻿namespace ProductMonitoring.API.DTO
 {
-    public class PartMaster
+    public class PartMasterDTO
     {
         public int Id { get; set; }
         public string Number { get; set; }
         public string? Location { get; set; }
         public string? Section { get; set; }
-        public string? Description { get; set; }
-        public int? Quantity { get; set; }
-
+        public string? BitAddress { get; set; }
     }
 }

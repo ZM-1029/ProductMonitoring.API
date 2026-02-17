@@ -7,7 +7,8 @@ namespace ProductMonitoring.API.Repository
     {
 /*        public string GeneratePartMasterTemplate();
 */        public  Task<BulkUploadResultDTO> BulkUploadPartMaster(IFormFile file);
-        public  Task AddSolutionHistoryAsync(SolutionHistory model);
+
+        public Task AddSolutionHistoryAsync(SolutionHistory model);
         public  Task<List<BitCategory>> GetAllCategoriesAsync(List<int> categoryIds);
         public  Task<List<BitAddressRemedy>?> GetBitAddressRemedyWithManualAsync(string key, int categoryId);
 
@@ -21,8 +22,6 @@ namespace ProductMonitoring.API.Repository
         public Task<List<BitAddressRemedy>?> GetBitAddressRemedyAsync(string key);
         public Task<List<BitAddressErrorManual>?> GetBitAddressManualAsync(string key);
         public  Task<List<BitAddressRemedy>?> GetBitAddressRemedyWithManualAsync(string key);
-
-
-
+        public  Task<PartMaster?> GetPartMasterByPartNumberAsync(string partNumber);
     }
 }

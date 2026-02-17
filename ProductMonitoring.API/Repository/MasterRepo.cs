@@ -23,8 +23,12 @@ namespace ProductMonitoring.API.Repository
             _environment = environment;
             _hub = hub;
         }
-
-        private async Task<string?> UploadErrorManual(IFormFile? manual,string key)
+        public async Task<PartMaster?> GetPartMasterByPartNumberAsync(string partNumber)
+        {
+            var existingPart = await _dbContext.PartMaster.FirstOrDefaultAsync(x => x.Number.Trim().ToUpper() == partNumber.Trim().ToUpper());
+            return existingPart;
+        }
+        public  async Task<string?> UploadErrorManual(IFormFile? manual,string key)
         {
             if (manual == null || manual.Length == 0)
                 return null;
@@ -123,8 +127,7 @@ namespace ProductMonitoring.API.Repository
             if (bitAddress == null) return null;
 
             return await _dbContext.BitAddressRemedies.Where(x => x.BitAddressId == bitAddress.Id).ToListAsync();
-        }
-           
+        }       
         public async Task<List<BitAddressRemedy>?> GetBitAddressRemedyWithManualAsync(string key)
         {
             if (string.IsNullOrWhiteSpace(key))
@@ -193,7 +196,6 @@ namespace ProductMonitoring.API.Repository
 
             return remedies;
         }
-
 
         public async Task<List<BitCategory>> GetAllCategoriesAsync(List<int> categoryIds)
         {
@@ -389,99 +391,140 @@ namespace ProductMonitoring.API.Repository
         {
             var result = new BulkUploadResultDTO();
             var partsToAdd = new List<PartMaster>();
+            var partsToAdd2 = new List<PartMasterDTO>();
 
             try
             {
-                using (var stream = new MemoryStream())
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                stream.Position = 0;
+
+                using var package = new ExcelPackage(stream);
+                var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+
+                if (worksheet == null)
                 {
-                    await file.CopyToAsync(stream);
-                    stream.Position = 0;
+                    result.Errors.Add("No worksheet found.");
+                    return result;
+                }
 
-                   // ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                var rowCount = worksheet.Dimension?.Rows ?? 0;
+                var colCount = worksheet.Dimension?.Columns ?? 0;
 
-                    using (var package = new ExcelPackage(stream))
+                if (rowCount < 2)
+                {
+                    result.Errors.Add("No data rows found.");
+                    return result;
+                }
+
+                // 🔹 Read Header Row and Map Column Names
+                var columnMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+                for (int col = 1; col <= colCount; col++)
+                {
+                    var header = worksheet.Cells[1, col].Value?.ToString()?.Trim();
+                    if (!string.IsNullOrWhiteSpace(header))
                     {
-                        var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null)
+                        columnMap[header] = col;
+                    }
+                }
+
+                // 🔹 Validate Required Columns
+                if (!columnMap.ContainsKey("Part Number"))
+                {
+                    result.Errors.Add("Missing required column: Part Number");
+                    return result;
+                }
+
+                result.TotalRows = rowCount - 1;
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    try
+                    {
+                        var partNumber = worksheet.Cells[row, columnMap["Part Number"]]
+                                            .Value?.ToString()?.Trim();
+
+                        var location = columnMap.ContainsKey("Part Location")
+                            ? worksheet.Cells[row, columnMap["Part Location"]]
+                                .Value?.ToString()?.Trim()
+                            : null;
+
+                        var section = columnMap.ContainsKey("Section")
+                            ? worksheet.Cells[row, columnMap["Section"]]
+                                .Value?.ToString()?.Trim()
+                            : null;
+
+                        var bitAddress = columnMap.ContainsKey("Bit Address")
+                            ? worksheet.Cells[row, columnMap["Bit Address"]].Value?.ToString()?.Trim()
+                            : null;
+
+                        if (string.IsNullOrWhiteSpace(partNumber))
                         {
-                            result.Errors.Add("No worksheet found in the file");
-                            return result;
+                            result.Errors.Add($"Row {row}: Part Number is required.");
+                            result.FailureCount++;
+                            continue;
                         }
 
-                        var rowCount = worksheet.Dimension?.Rows ?? 0;
-                        if (rowCount < 2)
+                        partsToAdd.Add(new PartMaster
                         {
-                            result.Errors.Add("File contains no data rows");
-                            return result;
+                            Number = partNumber,
+                            Location = location,
+                            Section = section,
+                            //BitAddress = bitAddress
+                        });
+                        partsToAdd2.Add(new PartMasterDTO
+                        {
+                            Number = partNumber,
+                            Location = location,
+                            Section = section,
+                            BitAddress = bitAddress
+                        });
+
+                        result.SuccessCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        result.Errors.Add($"Row {row}: {ex.Message}");
+                        result.FailureCount++;
+                    }
+                }
+
+                if (partsToAdd.Any())
+                {
+                    await _dbContext.PartMaster.AddRangeAsync(partsToAdd);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                if (partsToAdd2.Any())
+                {
+                    foreach (var data in partsToAdd2)
+                    { 
+                        var existingBitAddress = await _dbContext.BitAddressMasters
+                            .FirstOrDefaultAsync(x => data.BitAddress!=null && x.Code.Trim().ToUpper().Contains(data.BitAddress.Trim().ToUpper()));
+                        if (existingBitAddress != null)
+                        {
+                            existingBitAddress.PartNumber = data.Number;
+                            existingBitAddress.Location = data.Location;
+                            existingBitAddress.Section = data.Section;
+                            _dbContext.BitAddressMasters.Update(existingBitAddress);
                         }
-
-                        result.TotalRows = rowCount - 1; // Excluding header
-
-                        for (int row = 2; row <= rowCount; row++)
-                        {
-                            try
+                        else
+                        { 
+                            /*var model=new BitAddressMaster
                             {
-                                var partNumber = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                                Code = data.BitAddress,
+                                PartNumber = data.Number,
+                                Location = data.Location,
+                                Section = data.Section,
+                                BitCategoryId=1,
+                            };
+                            await _dbContext.BitAddressMasters.AddAsync(model);*/
 
-                                if (string.IsNullOrWhiteSpace(partNumber))
-                                {
-                                    result.Errors.Add($"Row {row}: Part Number is required");
-                                    result.FailureCount++;
-                                    continue;
-                                }
-
-                                // Check for duplicate in database
-                                var existingPart = await _dbContext.PartMaster
-                                    .FirstOrDefaultAsync(p => p.Number.ToUpper() == partNumber.ToUpper());
-
-                                if (existingPart != null)
-                                {
-                                    result.Errors.Add($"Row {row}: Part Number '{partNumber}' already exists");
-                                    result.FailureCount++;
-                                    continue;
-                                }
-
-                                var description = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
-                                var quantityValue = worksheet.Cells[row, 3].Value;
-                                int? quantity = null;
-
-                                if (quantityValue != null)
-                                {
-                                    if (int.TryParse(quantityValue.ToString(), out int qty))
-                                    {
-                                        quantity = qty;
-                                    }
-                                    else
-                                    {
-                                        result.Errors.Add($"Row {row}: Invalid quantity value");
-                                        result.FailureCount++;
-                                        continue;
-                                    }
-                                }
-
-                                partsToAdd.Add(new PartMaster
-                                {
-                                    Number = partNumber,
-                                    Description = description,
-                                    Quantity = quantity
-                                });
-
-                                result.SuccessCount++;
-                            }
-                            catch (Exception ex)
-                            {
-                                result.Errors.Add($"Row {row}: {ex.Message}");
-                                result.FailureCount++;
-                            }
-                        }
-
-                        // Bulk insert
-                        if (partsToAdd.Any())
-                        {
-                            await _dbContext.PartMaster.AddRangeAsync(partsToAdd);
-                            await _dbContext.SaveChangesAsync();
                         }
                     }
+                    await _dbContext.SaveChangesAsync();
+
                 }
             }
             catch (Exception ex)
