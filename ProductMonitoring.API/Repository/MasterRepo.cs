@@ -523,6 +523,7 @@ namespace ProductMonitoring.API.Repository
 
                         }
                     }
+
                     await _dbContext.SaveChangesAsync();
 
                 }
