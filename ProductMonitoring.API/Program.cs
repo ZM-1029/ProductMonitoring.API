@@ -4,6 +4,7 @@ using OfficeOpenXml;
 using ProductMonitoring.API.Models;
 using ProductMonitoring.API.Repository;
 using ProductMonitoring.API.SignalRsetup;
+using System;
 
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -14,14 +15,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddDbContext<ProductMonitoringDbContext>(options =>
+/*builder.Services.AddDbContext<ProductMonitoringDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
     options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     options.EnableSensitiveDataLogging();
     options.LogTo(Console.WriteLine, LogLevel.Error);
 
-});
+});*/
+
+builder.Services.AddDbContext<ProductMonitoringDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
 
 builder.Services.AddSignalR();
 

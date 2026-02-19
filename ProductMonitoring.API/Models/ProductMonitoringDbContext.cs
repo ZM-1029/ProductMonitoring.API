@@ -39,7 +39,7 @@ public partial class ProductMonitoringDbContext : DbContext
 
             entity.ToTable("PartMaster");
 
-            entity.Property(e => e.Id).HasIdentityOptions(null, null, null, 9999999999999L, null, null);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Description).HasColumnType("character varying");
            // entity.Property(e => e.IsExistingSolution).HasDefaultValue(true);
         });
@@ -50,7 +50,7 @@ public partial class ProductMonitoringDbContext : DbContext
 
             entity.ToTable("SolutionHistory");
 
-            entity.Property(e => e.Id).HasIdentityOptions(null, null, null, 9999999999999L, null, null);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Description).HasColumnType("character varying");
             entity.Property(e => e.IsExistingSolution).HasDefaultValue(true);
         });
@@ -61,7 +61,7 @@ public partial class ProductMonitoringDbContext : DbContext
 
             entity.ToTable("BitAddressCause");
 
-            entity.Property(e => e.Id).HasIdentityOptions(null, null, null, 9999999999999L, null, null);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Cause).HasColumnType("character varying");
         });
 
@@ -73,7 +73,7 @@ public partial class ProductMonitoringDbContext : DbContext
 
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd()
-                .HasIdentityOptions(null, null, null, 99999999999999L, null, null);
+               ;
             entity.Property(e => e.ManualUrl).HasColumnType("character varying");
         });
 
@@ -83,7 +83,7 @@ public partial class ProductMonitoringDbContext : DbContext
 
             entity.ToTable("BitAddressMaster");
 
-            entity.Property(e => e.Id).HasIdentityOptions(null, null, null, 9999999999999L, null, null);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Code).HasColumnType("character varying");
             entity.Property(e => e.Message).HasColumnType("character varying");
         });
@@ -94,7 +94,7 @@ public partial class ProductMonitoringDbContext : DbContext
 
             entity.ToTable("BitAddressRemedy");
 
-            entity.Property(e => e.Id).HasIdentityOptions(null, null, null, 99999999999999L, null, null);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Remedy).HasColumnType("character varying");
         });
 
@@ -104,7 +104,7 @@ public partial class ProductMonitoringDbContext : DbContext
 
             entity.ToTable("BitCategory");
 
-            entity.Property(e => e.Id).HasIdentityOptions(null, null, null, 99999999999999L, null, null);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Description).HasColumnType("character varying");
             entity.Property(e => e.Name).HasColumnType("character varying");
         });

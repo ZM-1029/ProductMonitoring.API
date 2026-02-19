@@ -82,6 +82,7 @@ namespace ProductMonitoring.API.Repository
 
         public async Task<List<BitAddressMaster>> GetAllBitAddressByKeyAsync(string key)
         {
+            var data = await _dbContext.BitAddressMasters.ToListAsync();
             return await _dbContext.BitAddressMasters
             .Where(x => EF.Functions.Like(x.Code, $"%{key}%"))
             .ToListAsync();
