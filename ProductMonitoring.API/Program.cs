@@ -74,12 +74,12 @@ app.UseCors("SignalRCors");
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-/*app.UseStaticFiles(new StaticFileOptions
+app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
         Path.Combine(builder.Environment.ContentRootPath, "ErrorManual")),
     RequestPath = "/errorManual"
-});*/
+});
 
 app.MapControllers();
 
