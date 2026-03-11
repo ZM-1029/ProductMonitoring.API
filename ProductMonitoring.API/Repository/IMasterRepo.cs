@@ -1,4 +1,4 @@
-﻿using ProductMonitoring.API.DTO;
+using ProductMonitoring.API.DTO;
 using ProductMonitoring.API.Models;
 
 namespace ProductMonitoring.API.Repository
@@ -14,7 +14,7 @@ namespace ProductMonitoring.API.Repository
 
         public Task<bool> AddNewRemedy(string remedy, string key);
         public  Task<bool> UpdateErrorLog(string key, string? remedy, bool IsExistingSolution, IFormFile? file);
-        public  Task<List<dynamic>> ErrorLogData(int? count, DateTime? from, DateTime? to, string? code);
+        public Task<List<ErrorLogDTO>> ErrorLogData(int? count, DateTime? from, DateTime? to, string? code);
         public Task<bool> PostErrorManual(RequestBody data);
         public Task<List<BitAddressMaster>> GetAllBitAddressByKeyAsync(string key);
         public Task<BitAddressMaster?> GetBitAddressByKeyAsync(string key,int categoryId);

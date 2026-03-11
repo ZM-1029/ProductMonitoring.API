@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using OfficeOpenXml;
 using ProductMonitoring.API.Models;
 using ProductMonitoring.API.Repository;
 using ProductMonitoring.API.SignalRsetup;
+using System.Text.Json;
 
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -62,6 +64,29 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.MapHub<SolutionNotificationHub>("/hubs/solution-notifications");
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+
+        var error = context.Features.Get<IExceptionHandlerFeature>();
+        if (error != null)
+        {
+            var ex = error.Error;
+            var result = JsonSerializer.Serialize(new
+            {
+                Status = false,
+                Message = ex.Message,
+                Detail = ex.InnerException?.Message,
+                StackTrace = app.Environment.IsDevelopment() ? ex.StackTrace : null
+            });
+            await context.Response.WriteAsync(result);
+        }
+    });
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())

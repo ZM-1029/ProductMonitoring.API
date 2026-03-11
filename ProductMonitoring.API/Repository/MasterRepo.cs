@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OfficeOpenXml;
@@ -258,25 +258,21 @@ namespace ProductMonitoring.API.Repository
             return false;
         }
 
-        public async Task<List<dynamic>> ErrorLogData(int? count, DateTime? from , DateTime? to,string? code)
+        public async Task<List<ErrorLogDTO>> ErrorLogData(int? count, DateTime? from , DateTime? to,string? code)
         {
             var solutions = await _dbContext.SolutionHistories.OrderByDescending(y => y.CreatedOn).ToListAsync();
-            // .Where(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
 
             var bitAddressList = await _dbContext.BitAddressMasters.ToListAsync();
             var categoryList = await _dbContext.BitCategories.ToListAsync();
-             //.Where(x => x.Code.Trim().ToUpper().Contains(key.Trim().ToUpper()));
-
-         
 
             if (from != null && from.HasValue && to != null && to.HasValue)
             {
-                solutions = solutions.Where(x => x.CreatedOn!=null &&  x.CreatedOn.Value.Date >= from && x.CreatedOn.Value.Date <= to).ToList();
+                solutions = solutions.Where(x => x.CreatedOn != null && x.CreatedOn.Value.Date >= from && x.CreatedOn.Value.Date <= to).ToList();
             }
             if (code != null)
             {
                 solutions = solutions
-                          .Where(x => x.BitAddress.Trim().ToUpper().Contains(code.Trim().ToUpper())).ToList();
+                    .Where(x => !string.IsNullOrEmpty(x.BitAddress) && x.BitAddress.Trim().ToUpper().Contains(code.Trim().ToUpper())).ToList();
             }
 
             if (count != null && count > 0)
@@ -284,21 +280,22 @@ namespace ProductMonitoring.API.Repository
                 solutions = solutions.Take(count ?? 0).ToList();
             }
 
-            var response= solutions.Select(  x=> (dynamic)new 
+            var response = solutions.Select(x => new ErrorLogDTO
             {
-                
-                BitAddress=x.BitAddress,
-                x.CategoryId,
-                Category= categoryList.FirstOrDefault(y=>y.Id==x.CategoryId)?.Name,
-                Description = bitAddressList.FirstOrDefault(d=>d.Code.Trim().ToUpper().Contains(x.BitAddress.Trim().ToUpper()))?.Message,
-               // x.IsExistingSolution,
-                x.CreatedOn,
-                x.IsOpen,
-                x.UpdatedOn,
-                x.File
-            }).OrderByDescending(y=>y.CreatedOn).ToList();
+                BitAddress = x.BitAddress,
+                CategoryId = x.CategoryId,
+                Category = categoryList.FirstOrDefault(y => y.Id == x.CategoryId)?.Name,
+                Description = bitAddressList.FirstOrDefault(d =>
+                    !string.IsNullOrEmpty(d.Code) &&
+                    !string.IsNullOrEmpty(x.BitAddress) &&
+                    d.Code.Trim().ToUpper().Contains(x.BitAddress.Trim().ToUpper()))?.Message,
+                CreatedOn = x.CreatedOn,
+                IsOpen = x.IsOpen,
+                UpdatedOn = x.UpdatedOn,
+                File = x.File
+            }).OrderByDescending(y => y.CreatedOn).ToList();
 
-           return response;
+            return response;
         }
 
         public async Task AddSolutionHistoryAsync(SolutionHistory model)
