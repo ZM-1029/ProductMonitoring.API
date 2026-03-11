@@ -117,12 +117,20 @@ namespace ProductMonitoring.API.Controllers
 
         [HttpGet]
         public async Task<IActionResult> ErrorLogList(int? count, DateTime? from, DateTime? to,string? code)
-        { 
-           var data=await _masterRepo.ErrorLogData(count,from,to,code);
+        {
+            try
+            {
+                var data = await _masterRepo.ErrorLogData(count, from, to, code);
 
-            return Ok(new {Status=true, Data= data, Message="Data retrieved successfully"});
+                return Ok(new { Status = true, Data = data, Message = "Data retrieved successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new { Status = false, Message = $"Failed to retrieve data: {ex.Message}" });
+            }    
         }
-                
+
+
         [HttpGet]
         // CHat not API
         [HttpGet]
