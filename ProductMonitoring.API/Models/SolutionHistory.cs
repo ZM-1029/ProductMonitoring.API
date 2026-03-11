@@ -9,9 +9,10 @@ public partial class SolutionHistory
 
     public string BitAddress { get; set; }
 
-    public int? CategoryId { get; set; }
+    public long? CategoryId { get; set; }
+    public long? RemedyId { get; set; }
 
-    public bool IsExistingSolution { get; set; }
+    public bool? IsExistingSolution { get; set; }
     public string? Description { get; set; }
 
     public DateTime? CreatedOn { get; set; }

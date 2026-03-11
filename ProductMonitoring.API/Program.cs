@@ -50,7 +50,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost:4200",
                  "http://150.241.246.64:525",
-                 "https://dev.snapsend.co:525"
+                 "http://10.101.32.161:2004"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -80,12 +80,13 @@ app.UseCors("SignalRCors");
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-/*app.UseStaticFiles(new StaticFileOptions
+
+app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
         Path.Combine(builder.Environment.ContentRootPath, "ErrorManual")),
     RequestPath = "/errorManual"
-});*/
+});
 
 app.MapControllers();
 

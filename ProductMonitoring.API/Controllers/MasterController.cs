@@ -40,7 +40,7 @@ namespace ProductMonitoring.API.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetBitAddressCauseList(string key)
-        {
+        {     
             var bitAddressCauseList = await _masterRepo.GetBitAddressCauseAsync(key);
             if (bitAddressCauseList == null || !bitAddressCauseList.Any()) return Ok(new { Status = false, Message = "No data found!" });
 
@@ -117,10 +117,17 @@ namespace ProductMonitoring.API.Controllers
 
         [HttpGet]
         public async Task<IActionResult> ErrorLogList(int? count, DateTime? from, DateTime? to,string? code)
-        { 
-           var data=await _masterRepo.ErrorLogData(count,from,to,code);
+        {
+            try
+            {
+                var data = await _masterRepo.ErrorLogData(count, from, to, code);
 
-            return Ok(new {Status=true, Data= data, Message="Data retrieved successfully"});
+                return Ok(new { Status = true, Data = data, Message = "Data retrieved successfully" });
+            }
+            catch (Exception e)
+            { 
+                return Ok(new { Status = false, Message = $"Error retrieving data: {e.Message}" });
+            }
         }
                 
         [HttpGet]
@@ -493,8 +500,8 @@ namespace ProductMonitoring.API.Controllers
               CreatedOn = DateTime.UtcNow,
               Description = data.Description,
               IsOpen=true
-
             };
+
              await _masterRepo.AddSolutionHistoryAsync(modeldata);
             return Ok(new {Status=true, Data=data, Message="Data added successfully"});
         }
