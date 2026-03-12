@@ -152,7 +152,7 @@ namespace ProductMonitoring.API.Repository
             // Add manual link as a remedy if manual exists
             if (manual != null && !string.IsNullOrWhiteSpace(manual.ManualUrl))
             {
-                var manualLink = $"https://zoumapushpak.com:442{manual.ManualUrl}";
+                var manualLink = $"{manual.ManualUrl}";
 
                 remedies.Add(new BitAddressRemedy
                 {
