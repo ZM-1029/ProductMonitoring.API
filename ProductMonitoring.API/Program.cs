@@ -5,6 +5,7 @@ using ProductMonitoring.API.Models;
 using ProductMonitoring.API.Repository;
 using ProductMonitoring.API.SignalRsetup;
 using System;
+using static System.Net.WebRequestMethods;
 
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -52,7 +53,9 @@ builder.Services.AddCors(options =>
                  "http://150.241.246.64:525",
                  "http://10.101.32.161:2004",
                  "http://10.101.52.244:8004",
-                 "http://10.101.32.160:8004"
+                 "http://10.101.32.160:8004",
+                 "http://10.101.33.210:8003",
+                    "http://10.101.33.210:8002"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
